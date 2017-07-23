@@ -12,14 +12,14 @@ import os
 import pickle
 
 
-Density="2.5"
-EnergyType=5
-
-input_path="5plus5_SingleSource/"
-dump_path = "./Cache/"
-output_path="ans.csv"
+Density="1.5"
+EnergyType=1
+multiSource=True
+input_path="5plus5_MultiSource/"
+dump_path = "CacheMulti/"
+output_path="ans2.csv"
 #detection type
-dt=["SGS","STGS4EB","STGS4ER","STGS8EB","STGS8ER"]
+dt=["SGS","STGS8EB","STGS8ER"]
 
 def Import(DetectionType):
     fin=open(input_path+Density+"_"+DetectionType+".txt")
@@ -28,14 +28,13 @@ def Import(DetectionType):
     finally:
         fin.close()
 
-    df=pd.DataFrame(columns=("Radius","Density","DetectionType",
+    df=pd.DataFrame(columns=("Density","DetectionType",
                              0,1,2,5,"total"))
 
     i=0
     for line in all_lines:
         line=line.split()
-        nums=[2.5*i,#radius
-        float(line[1]),
+        nums=[float(Density),
         DetectionType,
         float(line[2]),
         float(line[3]),
@@ -45,32 +44,42 @@ def Import(DetectionType):
         df.loc[i]=pd.Series(nums,index=df.columns)
         i+=1
     
+    if multiSource:
+        fin=open(input_path+Density+"_"+DetectionType+"_0_Activity.txt")
+        try:
+            all_lines = fin.readlines()
+        finally:
+            fin.close()
+        
+        add=pd.DataFrame()
+        add["RealActivity"]=None
+        i=0
+        for line in all_lines:
+            add.loc[i]=float(line)
+            i+=1
+        df=df.join(add)
+
     return df
 
 def get_df():
     frames=[Import(dt[0]),
         Import(dt[1]),
-        Import(dt[2]),
-        Import(dt[3]),
-        Import(dt[4])]
+        Import(dt[2])]
     df=pd.concat(frames,ignore_index=True)#ignore_index or index will repeat
     return df
 
-#get all data where density equal xxx
 
-'''
-if os.path.exists(dump_path):
-    ans = pickle.load(open(dump_path))
-else:
-    ans=pd.DataFrame(columns=("Density","EnergyType","Max.","Min.","RMS"))
-'''
 ans=pd.DataFrame(columns=("Density","EnergyType","Max.","Min.","RMS"))
 
 
 def get_y(DetectionType):
     df=Import(DetectionType)
     #df[(df["Density"]==Density) & (df["DetectionType"]==DetectionType)][EnergyType]/10000000.0-1
-    y=df[EnergyType]/100000.0-100#percent,%
+    if multiSource:
+        y=df[EnergyType]/df['RealActivity']*100-100#percent,%
+    else:
+        y=df[EnergyType]/100000-100#percent,%
+    
     new=pd.DataFrame( {"Density":Density,"EnergyType":EnergyType,
             "Max.":"%.2f" % y.max(),
             "Min.":"%.2f" % y.min(),
@@ -82,7 +91,7 @@ def get_y(DetectionType):
     return y
 
 def get_all_y():
-    return [get_y(dt[0]),get_y(dt[1]),get_y(dt[2]),get_y(dt[3]),get_y(dt[4])]
+    return [get_y(dt[0]),get_y(dt[1]),get_y(dt[2])]
 
 
 
@@ -96,10 +105,9 @@ def paint():
 
     ax = plt.subplot(111) #注意:一般都在ax中设置,不再plot中设置
     plt.plot(x,y[0],",-",label=dt[0])
-    plt.plot(x,y[1],".-",label="STGS4EA")
+    plt.plot(x,y[1],".-",label="STGS8EA")
     plt.plot(x,y[2],"s-",label=dt[2])
-    plt.plot(x,y[3],"v-",label="STGS8EA")
-    plt.plot(x,y[4],"x-",label=dt[4])
+
     plt.legend()
     plt.xlim(0,35)
 
@@ -116,7 +124,7 @@ def paint():
     #plt.title("0.5")
     plt.show()
 
-paint()
+
 
 def output_all():
     result=pd.DataFrame(columns=("Density","EnergyType","Max.","Min.","RMS"))
@@ -125,8 +133,7 @@ def output_all():
         for index,item in enumerate(filenames):
             #print filenames[index]
             if filenames[index].endswith('.pkl'):
-                #print pickle.load(open(dump_path+filenames[index]))
                 result=result.append(pickle.load(open(dump_path+filenames[index])))
     result.to_csv(output_path,index=False,index_label=False)
 
-#output_all()
+output_all()
