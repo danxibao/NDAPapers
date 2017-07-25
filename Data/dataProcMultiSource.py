@@ -91,7 +91,7 @@ def get_y(DetectionType):
     return y
 
 def get_all_y():
-    return [get_y(dt[0]),get_y(dt[1]),get_y(dt[2])]
+    return [get_y(dt[0]),get_y(dt[1]),get_y(dt[2]),get_y('STGS4ER')]
 
 
 
