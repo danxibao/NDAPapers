@@ -12,14 +12,14 @@ import os
 import pickle
 
 
-Density="2.5"
-EnergyType=5
+Density="0.5"
+EnergyType=2
 
-input_path="5plus5_SingleSource/"
-dump_path = "./Cache/"
-output_path="ans.csv"
+input_path="8plus22_SingleSource/"
+dump_path = "./CacheBig/"
+output_path="ansBig.csv"
 #detection type
-dt=["SGS","STGS4EB","STGS4ER","STGS8EB","STGS8ER"]
+dt=["SGS","STGS2EB","STGS2ER","STGS4EB","STGS4ER"]
 
 def Import(DetectionType):
     fin=open(input_path+Density+"_"+DetectionType+".txt")
@@ -50,9 +50,8 @@ def Import(DetectionType):
 def get_df():
     frames=[Import(dt[0]),
         Import(dt[1]),
-        Import(dt[2]),
-        Import(dt[3]),
-        Import(dt[4])]
+        Import(dt[2])]
+        
     df=pd.concat(frames,ignore_index=True)#ignore_index or index will repeat
     return df
 
@@ -82,6 +81,7 @@ def get_y(DetectionType):
     return y
 
 def get_all_y():
+    #return [get_y(dt[0]),get_y(dt[1]),get_y(dt[2])]
     return [get_y(dt[0]),get_y(dt[1]),get_y(dt[2]),get_y(dt[3]),get_y(dt[4])]
 
 
@@ -96,9 +96,9 @@ def paint():
 
     ax = plt.subplot(111) #注意:一般都在ax中设置,不再plot中设置
     plt.plot(x,y[0],",-",label=dt[0])
-    plt.plot(x,y[1],".-",label="STGS4EA")
+    plt.plot(x,y[1],".-",label=dt[1])
     plt.plot(x,y[2],"s-",label=dt[2])
-    plt.plot(x,y[3],"v-",label="STGS8EA")
+    plt.plot(x,y[3],"v-",label=dt[3])
     plt.plot(x,y[4],"x-",label=dt[4])
     plt.legend()
     plt.xlim(0,35)
@@ -114,6 +114,7 @@ def paint():
     ax.set_ylabel("Det")
 
     #plt.title("0.5")
+    plt.savefig(input_path+Density+'_'+str(EnergyType)+'.jpg') 
     plt.show()
 
 paint()
