@@ -15,11 +15,12 @@ import pickle
 Density="0.5"
 EnergyType=2
 
-input_path="8plus22_SingleSource/"
-dump_path = "./CacheBig/"
+input_path="5plus5_SingleSource/"
+dump_path = "./Cache/"
 output_path="ansBig.csv"
 #detection type
 dt=["SGS","STGS2EB","STGS2ER","STGS4EB","STGS4ER"]
+dt=["SGS","STGS4EA","STGS4ER","STGS8EA","STGS8ER"]
 
 def Import(DetectionType):
     fin=open(input_path+Density+"_"+DetectionType+".txt")
